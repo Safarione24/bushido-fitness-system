@@ -4,9 +4,12 @@
 
 {% block content %}
     <h1>Новая запись</h1>
+
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Записаться</button>
     </form>
+
+    <a href="{% url 'booking_list' %}">Назад</a>
 {% endblock %}
