@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои записи{% endblock %}
+
+{% block content %}
+    <h1>Мои записи</h1>
+    <a href="{% url 'booking_create' %}">+ Новая запись</a>
+    <ul>
+        {% for b in bookings %}
+            <li>{{ b.title }} — {{ b.date }}</li>
+        {% empty %}
+            <li>Записей пока нет</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
