@@ -4,10 +4,16 @@
 
 {% block content %}
     <h1>Мои записи</h1>
+
     <a href="{% url 'booking_create' %}">+ Новая запись</a>
+
     <ul>
         {% for b in bookings %}
-            <li>{{ b.title }} — {{ b.date }}</li>
+            <li>
+                {{ b.session.title }} —
+                {{ b.session.date|date:"d.m.Y H:i" }} —
+                {{ b.session.trainer }}
+            </li>
         {% empty %}
             <li>Записей пока нет</li>
         {% endfor %}
