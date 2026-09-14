@@ -4,6 +4,9 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from .models import Booking
 from .forms import BookingForm
+from django.http import JsonResponse
+
+
 
 def home_view(request):
     return render(request, 'home.html')
@@ -44,14 +47,23 @@ def booking_list(request):
     return render(request, 'booking_list.html', {'bookings': bookings})
 
 
+
 @login_required
 def booking_create(request):
     if request.method == 'POST':
         form = BookingForm(request.POST)
         if form.is_valid():
+            session = form.cleaned_data['session']
+
+            if Booking.objects.filter(user=request.user, session=session).exists():
+                return JsonResponse({'ok': False, 'error': 'Вы уже записаны'})
+
             booking = form.save(commit=False)
             booking.user = request.user
             booking.save()
+
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'ok': True})
             return redirect('booking_list')
     else:
         form = BookingForm()
