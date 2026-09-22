@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -31,6 +30,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,6 +39,31 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'main',
 ]
+
+
+JAZZMIN_SETTINGS = {
+    # Заголовок вкладки браузера
+    "site_title": "Bushido Admin",
+
+    # Заголовок на странице входа (крупный текст сверху)
+    "site_header": "Bushido Fitness System",
+
+    # Название бренда в левом верхнем углу
+    "site_brand": "Bushido",
+
+    # Приветствие на странице входа
+    "welcome_sign": "Панель управления клубом",
+
+    # Копирайт внизу
+    "copyright": "Bushido 2026",
+
+    # Кнопка «UI Builder» в правом верхнем углу
+    "show_ui_builder": True,
+
+    # Свой CSS
+    "custom_css": "css/admin-custom.css",
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -104,12 +129,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
+LANGUAGE_CODE = 'ru-ru'
+TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -117,6 +139,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

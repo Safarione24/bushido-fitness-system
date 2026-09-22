@@ -1,0 +1,10 @@
+/* Скрыть надпись "Jazzmin Version X.X.X" в футере */
+.app-footer .float-end,
+.app-footer .float-right,
+.app-footer .pull-right {
+    display: none !important;
+}
+/* Убрать бесполезную кнопку control-sidebar */
+.navbar-nav .nav-item a[data-widget="control-sidebar"] {
+    display: none !important;
+}

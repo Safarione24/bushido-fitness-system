@@ -7,7 +7,6 @@ from .forms import BookingForm
 from django.http import JsonResponse
 
 
-
 def home_view(request):
     return render(request, 'home.html')
 
@@ -45,7 +44,6 @@ def logout_view(request):
 def booking_list(request):
     bookings = Booking.objects.filter(user=request.user)
     return render(request, 'booking_list.html', {'bookings': bookings})
-
 
 
 @login_required
