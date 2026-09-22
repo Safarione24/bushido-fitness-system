@@ -62,6 +62,8 @@ JAZZMIN_SETTINGS = {
 
     # Свой CSS
     "custom_css": "css/admin-custom.css",
+
+    "site_logo": "img/bushido-logo.png",
 }
 
 
