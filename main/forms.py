@@ -1,6 +1,9 @@
 from django import forms
 from .models import Booking, Comment, Session
-
+from django.utils import timezone
+from django.db.models import Count, Q
+from django.db import models
+from django.db.models import Count, Q
 
 class BookingForm(forms.ModelForm):
     class Meta:
@@ -9,6 +12,18 @@ class BookingForm(forms.ModelForm):
         widgets = {
             'session': forms.Select(attrs={'class': 'form-select'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        now = timezone.now()
+
+        sessions = Session.objects.filter(date__gte=now).annotate(
+            active_bookings=Count('booking', filter=Q(booking__is_cancelled=False))
+        ).filter(
+            active_bookings__lt=models.F('max_participants')
+        )
+
+        self.fields['session'].queryset = sessions
 
 
 class CommentForm(forms.ModelForm):
