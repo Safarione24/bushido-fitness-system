@@ -24,5 +24,5 @@ urlpatterns = [
     path('comments/<int:pk>/delete/', views.comment_delete, name='comment_delete'),
 
     path('export/bookings/', views.export_bookings, name='export_bookings'),
-path('export/session/<int:pk>/', views.export_session, name='export_session'),
+    path('export/session/<int:pk>/', views.export_session, name='export_session'),
 ]

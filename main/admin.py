@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import HttpResponse
 from .models import Trainer, Zone, Tariff, Session, Booking, Favorite, Comment
-from .exports import export_bookings_to_excel
+from .exports import export_bookings_to_excel, export_bookings_by_session
 
 
 @admin.register(Trainer)
@@ -21,14 +21,18 @@ class ZoneAdmin(admin.ModelAdmin):
 
 @admin.register(Tariff)
 class TariffAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price', 'duration_days', 'visits_limit')
+    list_display = ('name', 'price', 'duration_days', 'visits_display')
     search_fields = ('name',)
+
+    @admin.display(description='Лимит посещений')
+    def visits_display(self, obj):
+        return obj.visits_display()
 
 
 class BookingInline(admin.TabularInline):
     model = Booking
     extra = 0
-    fields = ('user', 'created_at', 'is_cancelled', 'cancel_reason')
+    fields = ('user', 'created_at', 'status', 'moderation_reason')
     readonly_fields = ('user', 'created_at')
 
 
@@ -52,7 +56,6 @@ class SessionAdmin(admin.ModelAdmin):
             return
 
         session = queryset.first()
-        from .exports import export_bookings_by_session
         buffer = export_bookings_by_session(session)
 
         response = HttpResponse(
@@ -65,47 +68,57 @@ class SessionAdmin(admin.ModelAdmin):
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ('user', 'session', 'created_at', 'status_display', 'cancel_reason_short')
-    list_filter = ('is_cancelled', 'session')
+    list_display = ('user', 'session', 'created_at', 'status_display', 'moderated_at')
+    list_filter = ('status', 'session')
     search_fields = ('user__username', 'session__title')
-    readonly_fields = ('created_at', 'cancelled_at')
-    actions = ['cancel_with_reason', 'export_all_excel']
+    readonly_fields = ('created_at', 'moderated_at')
+    actions = ['approve_bookings', 'reject_with_reason', 'export_all_excel']
     fieldsets = (
         ('Основное', {'fields': ('user', 'session', 'created_at')}),
-        ('Отмена', {'fields': ('is_cancelled', 'cancel_reason', 'cancelled_at')}),
+        ('Модерация', {'fields': ('status', 'moderation_reason', 'moderated_at')}),
     )
 
     @admin.display(description='Статус')
     def status_display(self, obj):
-        return 'Отменена' if obj.is_cancelled else 'Активна'
+        colors = {
+            'pending': '🟡 На модерации',
+            'approved': '🟢 Одобрена',
+            'rejected': '🔴 Отклонена',
+        }
+        return colors.get(obj.status, obj.status)
 
-    @admin.display(description='Причина')
-    def cancel_reason_short(self, obj):
-        return obj.cancel_reason[:50] if obj.cancel_reason else '—'
+    @admin.action(description='✅ Одобрить выбранные')
+    def approve_bookings(self, request, queryset):
+        count = queryset.update(
+            status='approved',
+            moderation_reason='',
+            moderated_at=timezone.now()
+        )
+        self.message_user(request, f'Одобрено записей: {count}')
 
-    @admin.action(description='Отменить с указанием причины')
-    def cancel_with_reason(self, request, queryset):
+    @admin.action(description='❌ Отклонить с причиной')
+    def reject_with_reason(self, request, queryset):
         if 'apply' in request.POST:
             reason = request.POST.get('reason', '').strip()
             if not reason:
                 self.message_user(request, 'Укажите причину', level=messages.ERROR)
                 return redirect(request.get_full_path())
 
-            queryset.update(
-                is_cancelled=True,
-                cancel_reason=reason,
-                cancelled_at=timezone.now()
+            count = queryset.update(
+                status='rejected',
+                moderation_reason=reason,
+                moderated_at=timezone.now()
             )
-            self.message_user(request, f'Отменено записей: {queryset.count()}')
+            self.message_user(request, f'Отклонено записей: {count}')
             return redirect(request.get_full_path())
 
         return render(request, 'admin/cancel_with_reason.html', {
             'bookings': queryset,
-            'title': 'Отмена записей с указанием причины',
+            'title': 'Отклонение записей с указанием причины',
             'action_checkbox_name': admin.helpers.ACTION_CHECKBOX_NAME,
         })
 
-    @admin.action(description='Экспорт всех записей в Excel')
+    @admin.action(description='📊 Экспорт всех записей в Excel')
     def export_all_excel(self, request, queryset):
         buffer = export_bookings_to_excel()
         response = HttpResponse(

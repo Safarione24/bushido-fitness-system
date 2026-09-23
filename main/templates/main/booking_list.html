@@ -10,7 +10,7 @@
 </div>
 
 {% for b in bookings %}
-    <div class="card mb-3 {% if b.is_cancelled %}border-danger{% endif %}">
+    <div class="card mb-3 {% if b.status == 'rejected' %}border-danger{% elif b.status == 'pending' %}border-warning{% endif %}">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
@@ -23,24 +23,23 @@
                     <small class="text-muted">Записано: {{ b.created_at|date:"d.m.Y H:i" }}</small>
                 </div>
                 <div class="text-end">
-                    {% if b.is_cancelled %}
-                        <span class="badge badge-cancelled">Отменена</span>
-                        {% if b.cancel_reason %}
-                            <p class="small text-danger mt-1 mb-0">Причина: {{ b.cancel_reason }}</p>
+                    {% if b.status == 'approved' %}
+                        <span class="badge bg-success">Одобрена</span>
+                    {% elif b.status == 'pending' %}
+                        <span class="badge bg-warning text-dark">На модерации</span>
+                    {% elif b.status == 'rejected' %}
+                        <span class="badge bg-danger">Отклонена</span>
+                        {% if b.moderation_reason %}
+                            <p class="small text-danger mt-1 mb-0">Причина: {{ b.moderation_reason }}</p>
                         {% endif %}
-                    {% else %}
-                        <span class="badge badge-active">Активна</span>
                     {% endif %}
                 </div>
             </div>
         </div>
-        {% if not b.is_cancelled %}
+        {% if b.status != 'rejected' %}
             <div class="card-footer bg-white border-0 d-flex gap-2">
                 <a href="{% url 'session_detail' b.session.pk %}" class="btn btn-outline-primary btn-sm">
                     <i class="fas fa-info-circle"></i> Сессия
-                </a>
-                <a href="{% url 'booking_edit' b.pk %}" class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-edit"></i> Изменить
                 </a>
                 <a href="{% url 'booking_delete' b.pk %}" class="btn btn-outline-danger btn-sm">
                     <i class="fas fa-trash"></i> Удалить

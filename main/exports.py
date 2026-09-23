@@ -12,7 +12,7 @@ def export_bookings_to_excel():
 
     headers = [
         'ID', 'Пользователь', 'Email', 'Сессия', 'Тренер',
-        'Зона', 'Дата сессии', 'Дата записи', 'Статус', 'Причина отмены'
+        'Зона', 'Дата сессии', 'Дата записи', 'Статус', 'Причина'
     ]
     ws.append(headers)
 
@@ -33,11 +33,11 @@ def export_bookings_to_excel():
             b.session.zone.name,
             b.session.date.strftime('%d.%m.%Y %H:%M'),
             b.created_at.strftime('%d.%m.%Y %H:%M'),
-            'Активна' if not b.is_cancelled else 'Отменена',
-            b.cancel_reason or '—',
+            b.get_status_display(),
+            b.moderation_reason or '—',
         ])
 
-    widths = [6, 18, 24, 22, 22, 16, 18, 18, 12, 30]
+    widths = [6, 18, 24, 22, 22, 16, 18, 18, 14, 30]
     for i, w in enumerate(widths, 1):
         ws.column_dimensions[ws.cell(row=1, column=i).column_letter].width = w
 
@@ -60,7 +60,7 @@ def export_bookings_by_session(session):
     ws.append(['Зона', session.zone.name])
     ws.append([])
 
-    headers = ['№', 'Пользователь', 'Email', 'Дата записи', 'Статус', 'Причина отмены']
+    headers = ['№', 'Пользователь', 'Email', 'Дата записи', 'Статус', 'Причина']
     ws.append(headers)
 
     header_font = Font(bold=True, color='FFFFFF')
@@ -75,11 +75,11 @@ def export_bookings_by_session(session):
             b.user.username,
             b.user.email or '—',
             b.created_at.strftime('%d.%m.%Y %H:%M'),
-            'Активна' if not b.is_cancelled else 'Отменена',
-            b.cancel_reason or '—',
+            b.get_status_display(),
+            b.moderation_reason or '—',
         ])
 
-    for i, w in enumerate([6, 20, 26, 20, 12, 30], 1):
+    for i, w in enumerate([6, 20, 26, 20, 14, 30], 1):
         ws.column_dimensions[ws.cell(row=6, column=i).column_letter].width = w
 
     buffer = BytesIO()

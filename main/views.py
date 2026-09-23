@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from .models import Booking, Session, Favorite, Comment
 from .forms import BookingForm, CommentForm
+from .exports import export_bookings_to_excel, export_bookings_by_session
 
 
 def home_view(request):
@@ -70,7 +71,7 @@ def session_detail(request, pk):
     is_favorite = False
     if request.user.is_authenticated:
         is_booked = Booking.objects.filter(
-            user=request.user, session=session, is_cancelled=False
+            user=request.user, session=session, status='approved'
         ).exists()
         is_favorite = Favorite.objects.filter(
             user=request.user, session=session
@@ -82,6 +83,7 @@ def session_detail(request, pk):
         'comment_form': comment_form,
         'is_booked': is_booked,
         'is_favorite': is_favorite,
+        'now': timezone.now(),
     })
 
 
@@ -116,8 +118,9 @@ def booking_create(request, session_id=None):
 
             booking = form.save(commit=False)
             booking.user = request.user
+            booking.status = 'pending'
             booking.save()
-            messages.success(request, f'Вы записаны на «{session.title}»')
+            messages.success(request, f'Заявка на «{session.title}» отправлена на модерацию')
             return redirect('booking_list')
     else:
         form = BookingForm(initial=initial)
@@ -127,22 +130,8 @@ def booking_create(request, session_id=None):
 
 @login_required
 def booking_edit(request, pk):
-    booking = get_object_or_404(Booking, pk=pk, user=request.user)
-
-    if booking.is_cancelled:
-        messages.error(request, 'Отменённую запись нельзя редактировать')
-        return redirect('booking_list')
-
-    if request.method == 'POST':
-        form = BookingForm(request.POST, instance=booking)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Запись обновлена')
-            return redirect('booking_list')
-    else:
-        form = BookingForm(instance=booking)
-
-    return render(request, 'main/booking_form.html', {'form': form, 'editing': True})
+    messages.info(request, 'Изменение записи недоступно. Удалите и создайте заново.')
+    return redirect('booking_list')
 
 
 @login_required
@@ -213,9 +202,6 @@ def comment_delete(request, pk):
     comment.delete()
     messages.info(request, 'Комментарий удалён')
     return redirect('session_detail', pk=session_pk)
-
-
-from .exports import export_bookings_to_excel, export_bookings_by_session
 
 
 @login_required
