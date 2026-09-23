@@ -58,7 +58,7 @@ JAZZMIN_SETTINGS = {
     "copyright": "Bushido 2026",
 
     # Кнопка «UI Builder» в правом верхнем углу
-    "show_ui_builder": True,
+    "show_ui_builder": False,
 
     # Свой CSS
     "custom_css": "css/admin-custom.css",
