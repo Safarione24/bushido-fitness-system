@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}{{ session.title }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h1 class="page-title mb-2">{{ session.title }}</h1>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'favorite_toggle' session.pk %}"
+                           class="btn btn-sm {% if is_favorite %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                            <i class="{% if is_favorite %}fas{% else %}far{% endif %} fa-heart"></i>
+                        </a>
+                    {% endif %}
+                </div>
+                <p class="text-muted">
+                    <i class="fas fa-user-tie me-1"></i>{{ session.trainer }}<br>
+                    <i class="fas fa-map-marker-alt me-1"></i>{{ session.zone.name }}<br>
+                    <i class="fas fa-clock me-1"></i>{{ session.date|date:"d.m.Y H:i" }}<br>
+                    <i class="fas fa-users me-1"></i>Свободно: {{ session.free_places }} из {{ session.max_participants }}
+                </p>
+                {% if session.description %}
+                    <p>{{ session.description }}</p>
+                {% endif %}
+
+                {% if user.is_authenticated %}
+                    {% if is_booked %}
+                        <div class="alert alert-success mb-0">
+                            <i class="fas fa-check me-2"></i>Вы записаны на эту сессию
+                        </div>
+                    {% elif session.free_places > 0 %}
+                        <a href="{% url 'booking_create_for_session' session.pk %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Записаться
+                        </a>
+                    {% else %}
+                        <div class="alert alert-warning mb-0">Мест не осталось</div>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary">Войдите, чтобы записаться</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h4 class="mb-3"><i class="fas fa-comments me-2"></i>Комментарии ({{ comments.count }})</h4>
+
+                {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'comment_add' session.pk %}" class="mb-4">
+                        {% csrf_token %}
+                        {{ comment_form }}
+                        <button type="submit" class="btn btn-primary btn-sm mt-2">Отправить</button>
+                    </form>
+                {% endif %}
+
+                {% for c in comments %}
+                    <div class="border-top py-3">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ c.user.username }}</strong>
+                            <small class="text-muted">{{ c.created_at|date:"d.m.Y H:i" }}</small>
+                        </div>
+                        <p class="mb-1 mt-1">{{ c.text }}</p>
+                        {% if c.user == user or user.is_staff %}
+                            <a href="{% url 'comment_delete' c.pk %}" class="text-danger small">
+                                <i class="fas fa-trash"></i> Удалить
+                            </a>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p class="text-muted">Комментариев пока нет</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

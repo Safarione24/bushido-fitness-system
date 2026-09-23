@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Главная — Bushido{% endblock %}
+
+{% block content %}
+<div class="text-center py-5 mb-4">
+    <h1 class="display-4 fw-bold text-dark">Bushido Fitness System</h1>
+    <p class="lead text-muted">Управление тренировками, сессиями и записями</p>
+    {% if not user.is_authenticated %}
+        <a href="{% url 'register' %}" class="btn btn-primary btn-lg mt-3">
+            <i class="fas fa-user-plus me-2"></i>Начать
+        </a>
+    {% endif %}
+</div>
+
+<h2 class="page-title"><i class="fas fa-calendar-alt me-2"></i>Ближайшие сессии</h2>
+
+<div class="row g-4">
+    {% for s in upcoming %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card session-card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ s.title }}</h5>
+                    <p class="text-muted small mb-2">
+                        <i class="fas fa-user-tie me-1"></i>{{ s.trainer }}<br>
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ s.zone.name }}<br>
+                        <i class="fas fa-clock me-1"></i>{{ s.date|date:"d.m.Y H:i" }}
+                    </p>
+                    <p class="mb-0">
+                        <span class="badge bg-success">{{ s.free_places }} мест</span>
+                    </p>
+                </div>
+                <div class="card-footer bg-white border-0">
+                    <a href="{% url 'session_detail' s.pk %}" class="btn btn-outline-primary btn-sm w-100">
+                        Подробнее
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="fas fa-calendar-times"></i>
+                <p>Пока нет предстоящих сессий</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

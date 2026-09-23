@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Избранное{% endblock %}
+
+{% block content %}
+<h1 class="page-title"><i class="fas fa-heart me-2"></i>Избранное</h1>
+
+<div class="row g-4">
+    {% for f in favorites %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card session-card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ f.session.title }}</h5>
+                    <p class="text-muted small mb-2">
+                        <i class="fas fa-user-tie me-1"></i>{{ f.session.trainer }}<br>
+                        <i class="fas fa-clock me-1"></i>{{ f.session.date|date:"d.m.Y H:i" }}
+                    </p>
+                </div>
+                <div class="card-footer bg-white border-0 d-flex gap-2">
+                    <a href="{% url 'session_detail' f.session.pk %}" class="btn btn-outline-primary btn-sm flex-grow-1">
+                        Подробнее
+                    </a>
+                    <a href="{% url 'favorite_delete' f.pk %}" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="far fa-heart"></i>
+                <p>В избранном пусто</p>
+                <a href="{% url 'session_list' %}" class="btn btn-primary">Посмотреть расписание</a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Удалить запись{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-body">
+                <h2 class="text-danger">Удалить запись?</h2>
+                <p>Вы уверены, что хотите удалить запись на «{{ booking.session.title }}»?</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Да, удалить</button>
+                    <a href="{% url 'booking_list' %}" class="btn btn-outline-secondary">Отмена</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
