@@ -64,6 +64,24 @@ JAZZMIN_SETTINGS = {
     "custom_css": "css/admin-custom.css",
 
     "site_logo": "img/bushido-logo.png",
+    
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+        "main.Trainer": "fas fa-user-tie",
+        "main.Zone": "fas fa-map-marker-alt",
+        "main.Tariff": "fas fa-ruble-sign",
+        "main.Session": "fas fa-calendar-alt",
+        "main.Booking": "fas fa-bookmark",
+        "main.Favorite": "fas fa-heart",
+        "main.Comment": "fas fa-comments",
+    },
+    "order_with_respect_to": ["main", "auth"],
+    "topmenu_links": [
+        {"name": "На сайт", "url": "/", "icon": "fas fa-home", "new_window": True},
+    ],
+
 }
 
 

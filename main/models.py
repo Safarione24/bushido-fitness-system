@@ -2,12 +2,23 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+class ActiveManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
+
+
 class Trainer(models.Model):
     first_name = models.CharField(max_length=50, verbose_name='Имя')
     last_name = models.CharField(max_length=50, verbose_name='Фамилия')
     specialization = models.CharField(max_length=100, verbose_name='Специализация')
     photo = models.ImageField(upload_to='trainers/', blank=True, null=True, verbose_name='Фото')
     description = models.TextField(blank=True, verbose_name='Описание')
+
+    is_deleted = models.BooleanField(default=False, verbose_name='Удалено')
+    deleted_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата удаления')
+
+    objects = ActiveManager()
+    all_objects = models.Manager()
 
     class Meta:
         verbose_name = 'Тренер'
@@ -21,6 +32,12 @@ class Zone(models.Model):
     name = models.CharField(max_length=100, verbose_name='Название')
     capacity = models.PositiveIntegerField(verbose_name='Вместимость')
     description = models.TextField(blank=True, verbose_name='Описание')
+
+    is_deleted = models.BooleanField(default=False, verbose_name='Удалено')
+    deleted_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата удаления')
+
+    objects = ActiveManager()
+    all_objects = models.Manager()
 
     class Meta:
         verbose_name = 'Зона'
@@ -36,6 +53,12 @@ class Tariff(models.Model):
     duration_days = models.PositiveIntegerField(verbose_name='Длительность (дней)')
     visits_limit = models.PositiveIntegerField(verbose_name='Лимит посещений', help_text='0 = безлимит')
     description = models.TextField(blank=True, verbose_name='Описание')
+
+    is_deleted = models.BooleanField(default=False, verbose_name='Удалено')
+    deleted_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата удаления')
+
+    objects = ActiveManager()
+    all_objects = models.Manager()
 
     class Meta:
         verbose_name = 'Тариф'
@@ -59,6 +82,12 @@ class Session(models.Model):
     max_participants = models.PositiveIntegerField(verbose_name='Максимум участников')
     description = models.TextField(blank=True, verbose_name='Описание')
 
+    is_deleted = models.BooleanField(default=False, verbose_name='Удалено')
+    deleted_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата удаления')
+
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
     class Meta:
         verbose_name = 'Сессия'
         verbose_name_plural = 'Сессии'
@@ -68,7 +97,7 @@ class Session(models.Model):
         return f"{self.title} — {self.date:%d.%m.%Y %H:%M}"
 
     def booked_count(self):
-        return self.booking_set.filter(status='approved').count()
+        return self.booking_set.filter(status='approved', is_deleted=False).count()
 
     def free_places(self):
         return max(0, self.max_participants - self.booked_count())
@@ -85,19 +114,19 @@ class Booking(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE, verbose_name='Сессия')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
 
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='pending',
-        verbose_name='Статус'
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name='Статус')
     moderation_reason = models.TextField(blank=True, verbose_name='Комментарий модератора')
     moderated_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата модерации')
+
+    is_deleted = models.BooleanField(default=False, verbose_name='Удалено')
+    deleted_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата удаления')
+
+    objects = ActiveManager()
+    all_objects = models.Manager()
 
     class Meta:
         verbose_name = 'Запись'
         verbose_name_plural = 'Записи'
-        unique_together = ('user', 'session')
         ordering = ['-created_at']
 
     def __str__(self):
@@ -118,10 +147,15 @@ class Favorite(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE, verbose_name='Сессия')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Добавлено')
 
+    is_deleted = models.BooleanField(default=False, verbose_name='Удалено')
+    deleted_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата удаления')
+
+    objects = ActiveManager()
+    all_objects = models.Manager()
+
     class Meta:
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранное'
-        unique_together = ('user', 'session')
 
     def __str__(self):
         return f"{self.user.username} → {self.session.title}"
@@ -132,6 +166,12 @@ class Comment(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE, related_name='comments', verbose_name='Сессия')
     text = models.TextField(verbose_name='Текст')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Создан')
+
+    is_deleted = models.BooleanField(default=False, verbose_name='Удалено')
+    deleted_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата удаления')
+
+    objects = ActiveManager()
+    all_objects = models.Manager()
 
     class Meta:
         verbose_name = 'Комментарий'

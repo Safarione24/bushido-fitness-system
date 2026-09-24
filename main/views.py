@@ -139,7 +139,9 @@ def booking_delete(request, pk):
     booking = get_object_or_404(Booking, pk=pk, user=request.user)
 
     if request.method == 'POST':
-        booking.delete()
+        booking.is_deleted = True
+        booking.deleted_at = timezone.now()
+        booking.save()
         messages.success(request, 'Запись удалена')
         return redirect('booking_list')
 
@@ -157,19 +159,25 @@ def favorite_toggle(request, session_id):
     session = get_object_or_404(Session, pk=session_id)
     fav, created = Favorite.objects.get_or_create(user=request.user, session=session)
 
-    if not created:
-        fav.delete()
+    if not created and not fav.is_deleted:
+        fav.is_deleted = True
+        fav.deleted_at = timezone.now()
+        fav.save()
         messages.info(request, 'Удалено из избранного')
     else:
+        fav.is_deleted = False
+        fav.deleted_at = None
+        fav.save()
         messages.success(request, 'Добавлено в избранное')
 
     return redirect(request.META.get('HTTP_REFERER', 'session_list'))
 
-
 @login_required
 def favorite_delete(request, pk):
     fav = get_object_or_404(Favorite, pk=pk, user=request.user)
-    fav.delete()
+    fav.is_deleted = True
+    fav.deleted_at = timezone.now()
+    fav.save()
     messages.info(request, 'Удалено из избранного')
     return redirect('favorite_list')
 
@@ -199,7 +207,9 @@ def comment_delete(request, pk):
         return redirect('session_detail', pk=comment.session.pk)
 
     session_pk = comment.session.pk
-    comment.delete()
+    comment.is_deleted = True
+    comment.deleted_at = timezone.now()
+    comment.save()
     messages.info(request, 'Комментарий удалён')
     return redirect('session_detail', pk=session_pk)
 
